@@ -10,10 +10,23 @@ function App() {
   const [activeTab, setActiveTab] = useState<TabId>("contable");
 
   useEffect(() => {
-    console.log(">>> useEffect corrió");
-    console.log("Supabase URL:", import.meta.env.VITE_SUPABASE_URL);
-    console.log("Cliente Supabase:", supabase);
-  }, []);
+  async function leerTransacciones() {
+    console.log(">>> Consultando transacciones...");
+    const { data, error } = await supabase
+      .from("transactions")
+      .select("*");
+
+    if (error) {
+      console.error("Error al leer:", error);
+      return;
+    }
+
+    console.log("Transacciones leídas:", data);
+    console.log("Cantidad:", data?.length ?? 0);
+  }
+
+  leerTransacciones();
+}, []);
 
   return (
     <div className="min-h-screen p-4 md:p-6 max-w-4xl mx-auto">
