@@ -1,5 +1,10 @@
-function Header() {
-  // Datos falsos por ahora. Después vienen de la base de datos.
+import { supabase } from "../supabaseClient";
+
+interface HeaderProps {
+  userEmail: string;
+}
+
+function Header({ userEmail }: HeaderProps) {
   const dinero = 1250;
   const nivel = 3;
   const xpActual = 320;
@@ -8,10 +13,13 @@ function Header() {
 
   const porcentajeXP = (xpActual / xpSiguiente) * 100;
 
+  async function handleLogout() {
+    await supabase.auth.signOut();
+  }
+
   return (
     <header className="bg-bg-panel border-2 border-border-gold rounded-lg p-4 mb-4">
       <div className="flex flex-wrap items-center justify-between gap-4">
-        {/* Dinero */}
         <div className="flex items-center gap-2">
           <span className="text-2xl">💰</span>
           <span className="font-pixel text-text-gold text-lg">
@@ -19,7 +27,6 @@ function Header() {
           </span>
         </div>
 
-        {/* Nivel y racha */}
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-2">
             <span className="text-2xl">⚔️</span>
@@ -38,7 +45,6 @@ function Header() {
         </div>
       </div>
 
-      {/* Barra de XP */}
       <div className="mt-4">
         <div className="flex justify-between text-xs mb-1">
           <span className="text-text-secondary">EXPERIENCIA</span>
@@ -52,6 +58,18 @@ function Header() {
             style={{ width: `${porcentajeXP}%` }}
           />
         </div>
+      </div>
+
+      <div className="mt-4 flex justify-between items-center border-t border-border-dim pt-3">
+        <span className="text-text-secondary text-xs">
+          🧙 {userEmail}
+        </span>
+        <button
+          onClick={handleLogout}
+          className="text-text-secondary text-xs hover:text-accent-ruby transition-colors"
+        >
+          Cerrar sesión
+        </button>
       </div>
     </header>
   );
