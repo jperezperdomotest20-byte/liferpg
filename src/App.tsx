@@ -1,12 +1,23 @@
+import { useState } from "react";
+import Header from "./components/Header";
+import { Tabs, type TabId } from "./components/Tabs";
+import ContableView from "./components/ContableView";
+import InventarioView from "./components/InventarioView";
+import MisionesView from "./components/MisionesView";
+
 function App() {
+  const [activeTab, setActiveTab] = useState<TabId>("contable");
+
   return (
-    <div className="min-h-screen p-6">
-      <h1 className="font-pixel text-text-gold text-2xl">
-        LIFERPG
-      </h1>
-      <p className="text-text-secondary mt-4">
-        Proyecto inicializado correctamente.
-      </p>
+    <div className="min-h-screen p-4 md:p-6 max-w-4xl mx-auto">
+      <Header />
+      <Tabs activeTab={activeTab} onChange={setActiveTab} />
+
+      <main>
+        {activeTab === "contable" && <ContableView />}
+        {activeTab === "inventario" && <InventarioView />}
+        {activeTab === "misiones" && <MisionesView />}
+      </main>
     </div>
   );
 }
