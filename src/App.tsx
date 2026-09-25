@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "./hooks/useAuth";
 import { useTransactions } from "./hooks/useTransactions";
-import { supabase } from "./supabaseClient";
 import AuthView from "./components/AuthView";
 import Header from "./components/Header";
 import { Tabs, type TabId } from "./components/Tabs";
