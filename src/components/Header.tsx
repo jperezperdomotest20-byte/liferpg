@@ -2,10 +2,16 @@ import { supabase } from "../supabaseClient";
 
 interface HeaderProps {
   userEmail: string;
+  balance: number;
+  totalIncome: number;
+  totalExpenses: number;
 }
 
-function Header({ userEmail }: HeaderProps) {
-  const dinero = 1250;
+function Header({ userEmail, balance, totalIncome, totalExpenses }: HeaderProps) {
+  <span className="font-pixel text-text-gold text-lg">
+  ${balance.toLocaleString()}
+</span>
+
   const nivel = 3;
   const xpActual = 320;
   const xpSiguiente = 500;
@@ -23,9 +29,14 @@ function Header({ userEmail }: HeaderProps) {
         <div className="flex items-center gap-2">
           <span className="text-2xl">💰</span>
           <span className="font-pixel text-text-gold text-lg">
-            ${dinero.toLocaleString()}
+            ${balance.toLocaleString()}
           </span>
         </div>
+        <div className="text-text-secondary text-xs mt-1">
+  <span className="text-accent-emerald">+${totalIncome.toFixed(0)}</span>
+  {" · "}
+  <span className="text-accent-ruby">-${totalExpenses.toFixed(0)}</span>
+</div>
 
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-2">
