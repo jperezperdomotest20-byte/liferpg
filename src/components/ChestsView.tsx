@@ -63,7 +63,12 @@ function ChestsView({ chests, loading, error }: ChestsViewProps) {
             }}
           >
             <div className="flex items-center justify-between mb-3">
-              <span className="text-3xl">{chest.icon}</span>
+              <img
+  src={chest.icon}
+  alt={chest.name}
+  className="w-16 h-16 object-contain"
+  style={{ imageRendering: "pixelated" }}
+/>
               <span
                 className="text-xs font-pixel opacity-60"
                 style={{ color: chest.color }}
