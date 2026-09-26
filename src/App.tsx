@@ -9,7 +9,7 @@ import InventarioView from "./components/InventarioView";
 import MisionesView from "./components/MisionesView";
 
 function App() {
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, isEmailVerified } = useAuth();
   const [activeTab, setActiveTab] = useState<TabId>("contable");
 
   if (authLoading) {
@@ -26,15 +26,24 @@ function App() {
     return <AuthView />;
   }
 
-  return <AuthenticatedApp userEmail={user.email ?? ""} activeTab={activeTab} setActiveTab={setActiveTab} />;
+  return (
+  <AuthenticatedApp
+    userEmail={user.email ?? ""}
+    isEmailVerified={isEmailVerified}
+    activeTab={activeTab}
+    setActiveTab={setActiveTab}
+  />
+);
 }
 
 function AuthenticatedApp({
   userEmail,
+  isEmailVerified,
   activeTab,
   setActiveTab,
 }: {
   userEmail: string;
+  isEmailVerified: boolean;
   activeTab: TabId;
   setActiveTab: (t: TabId) => void;
 }) {
@@ -50,15 +59,29 @@ function AuthenticatedApp({
   } = useTransactions();
 
   return (
-    <div className="min-h-screen p-4 md:p-6 max-w-4xl mx-auto">
-      <Header
-        userEmail={userEmail}
-        balance={balance}
-        totalIncome={totalIncome}
-        totalExpenses={totalExpenses}
-      />
+  <div className="min-h-screen p-4 md:p-6 max-w-4xl mx-auto">
+    <Header
+      userEmail={userEmail}
+      balance={balance}
+      totalIncome={totalIncome}
+      totalExpenses={totalExpenses}
+    />
 
-      <Tabs activeTab={activeTab} onChange={setActiveTab} />
+    {!isEmailVerified && (
+      <div className="bg-accent-gold/20 border-2 border-accent-gold rounded-lg p-3 mb-4 flex items-center gap-3">
+        <span className="text-xl">⚠️</span>
+        <div className="flex-1">
+          <div className="text-accent-gold text-xs font-pixel">
+            VERIFICÁ TU EMAIL
+          </div>
+          <div className="text-text-secondary text-xs mt-1">
+            Te enviamos un link a {userEmail}. Revisá tu bandeja (y spam).
+          </div>
+        </div>
+      </div>
+    )}
+
+    <Tabs activeTab={activeTab} onChange={setActiveTab} />
 
       <main>
         {activeTab === "contable" && (

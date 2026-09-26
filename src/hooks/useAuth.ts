@@ -7,13 +7,13 @@ export function useAuth() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // 1. Obtener la sesión actual (por si ya estaba logueado de antes)
+    // 1. Obtener la sesión actual
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
       setLoading(false);
     });
 
-    // 2. Escuchar cambios futuros (login, logout, expiración)
+    // 2. Escuchar cambios futuros
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, session) => {
         setUser(session?.user ?? null);
@@ -23,5 +23,8 @@ export function useAuth() {
     return () => subscription.unsubscribe();
   }, []);
 
-  return { user, loading };
+  // NUEVO: ¿el email está verificado?
+  const isEmailVerified = user?.email_confirmed_at != null;
+
+  return { user, loading, isEmailVerified };
 }
