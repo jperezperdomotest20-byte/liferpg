@@ -23,8 +23,5 @@ export function useAuth() {
     return () => subscription.unsubscribe();
   }, []);
 
-  // NUEVO: ¿el email está verificado?
-  const isEmailVerified = user?.email_confirmed_at != null;
-
-  return { user, loading, isEmailVerified };
+  return { user, loading };
 }

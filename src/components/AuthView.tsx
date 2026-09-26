@@ -8,18 +8,24 @@ function AuthView() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [message, setMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+    setMessage(null);
     setLoading(true);
 
     try {
       if (mode === "register") {
         const { error } = await supabase.auth.signUp({ email, password });
         if (error) throw error;
-        // Con "Confirm email" desactivado, ya queda logueado automáticamente.
+
+        // Registro exitoso: mostramos aviso de "revisá tu email"
+        setMessage(
+          `Te enviamos un email a ${email}. Revisá tu bandeja (y spam) para confirmar tu cuenta.`
+        );
       } else {
         const { error } = await supabase.auth.signInWithPassword({
           email,
@@ -34,6 +40,13 @@ function AuthView() {
     }
   }
 
+  function switchMode() {
+    setMode(mode === "login" ? "register" : "login");
+    setError(null);
+    setMessage(null);
+    setPassword("");
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
       <div className="w-full max-w-md bg-bg-panel border-2 border-border-gold rounded-lg p-6">
@@ -43,6 +56,18 @@ function AuthView() {
         <p className="text-text-secondary text-center text-sm mb-6">
           {mode === "login" ? "Iniciar sesión" : "Crear cuenta"}
         </p>
+
+        {message && (
+          <div className="mb-4 bg-accent-gold/20 border-2 border-accent-gold rounded-lg p-3 flex items-start gap-3">
+            <span className="text-xl">📧</span>
+            <div className="flex-1">
+              <div className="text-accent-gold text-xs font-pixel">
+                REVISÁ TU EMAIL
+              </div>
+              <div className="text-text-secondary text-xs mt-1">{message}</div>
+            </div>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -95,10 +120,7 @@ function AuthView() {
 
         <div className="mt-6 text-center">
           <button
-            onClick={() => {
-              setMode(mode === "login" ? "register" : "login");
-              setError(null);
-            }}
+            onClick={switchMode}
             className="text-text-secondary text-xs hover:text-text-gold transition-colors"
           >
             {mode === "login"

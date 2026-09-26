@@ -1,15 +1,17 @@
 import { useState } from "react";
 import { useAuth } from "./hooks/useAuth";
 import { useTransactions } from "./hooks/useTransactions";
+import { useChests } from "./hooks/useChests";
 import AuthView from "./components/AuthView";
 import Header from "./components/Header";
 import { Tabs, type TabId } from "./components/Tabs";
+import ChestsView from "./components/ChestsView";
 import ContableView from "./components/ContableView";
 import InventarioView from "./components/InventarioView";
 import MisionesView from "./components/MisionesView";
 
 function App() {
-  const { user, loading: authLoading, isEmailVerified } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [activeTab, setActiveTab] = useState<TabId>("contable");
 
   if (authLoading) {
@@ -29,7 +31,6 @@ function App() {
   return (
     <AuthenticatedApp
       userEmail={user.email ?? ""}
-      isEmailVerified={isEmailVerified}
       activeTab={activeTab}
       setActiveTab={setActiveTab}
     />
@@ -38,12 +39,10 @@ function App() {
 
 function AuthenticatedApp({
   userEmail,
-  isEmailVerified,
   activeTab,
   setActiveTab,
 }: {
   userEmail: string;
-  isEmailVerified: boolean;
   activeTab: TabId;
   setActiveTab: (t: TabId) => void;
 }) {
@@ -58,6 +57,12 @@ function AuthenticatedApp({
     totalExpenses,
   } = useTransactions();
 
+  const {
+    chests,
+    loading: chestsLoading,
+    error: chestsError,
+  } = useChests();
+
   return (
     <div className="min-h-screen p-4 md:p-6 max-w-4xl mx-auto">
       <Header
@@ -67,31 +72,24 @@ function AuthenticatedApp({
         totalExpenses={totalExpenses}
       />
 
-      {!isEmailVerified && (
-        <div className="bg-accent-gold/20 border-2 border-accent-gold rounded-lg p-3 mb-4 flex items-center gap-3">
-          <span className="text-xl">⚠️</span>
-          <div className="flex-1">
-            <div className="text-accent-gold text-xs font-pixel">
-              VERIFICÁ TU EMAIL
-            </div>
-            <div className="text-text-secondary text-xs mt-1">
-              Te enviamos un link a {userEmail}. Revisá tu bandeja (y spam).
-            </div>
-          </div>
-        </div>
-      )}
-
       <Tabs activeTab={activeTab} onChange={setActiveTab} />
 
       <main>
         {activeTab === "contable" && (
-          <ContableView
-            transactions={transactions}
-            loading={loading}
-            error={error}
-            addTransaction={addTransaction}
-            deleteTransaction={deleteTransaction}
-          />
+          <>
+            <ChestsView
+              chests={chests}
+              loading={chestsLoading}
+              error={chestsError}
+            />
+            <ContableView
+              transactions={transactions}
+              loading={loading}
+              error={error}
+              addTransaction={addTransaction}
+              deleteTransaction={deleteTransaction}
+            />
+          </>
         )}
         {activeTab === "inventario" && <InventarioView />}
         {activeTab === "misiones" && <MisionesView />}

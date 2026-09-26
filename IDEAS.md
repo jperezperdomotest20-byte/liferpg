@@ -87,3 +87,12 @@ Cada idea se prioriza cuando llegue su horizonte.
 - [ ] Metas de ahorro
 - [ ] Modo "sálvese quien pueda" (qué tirar)
 - [ ] Costo por uso de un item
+
+## 💭 Pendientes técnicos / "algún día"
+
+- [ ] Comprar dominio propio (~$10/año)
+- [ ] Configurar Resend con dominio verificado
+- [ ] Migrar SMTP de Supabase a Resend
+- [ ] Personalizar email de confirmación con HTML pergamino
+- [ ] Personalizar email de recuperación de contraseña
+- [ ] Apuntar Vercel a dominio propio (en vez de liferpg-navy.vercel.app)
