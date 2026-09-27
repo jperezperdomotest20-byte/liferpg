@@ -9,6 +9,7 @@ export interface Transaction {
   description: string;
   category: string | null;
   date: string;
+  chest_id: string | null;    // ← NUEVO
   created_at: string;
 }
 
@@ -18,6 +19,7 @@ export interface NewTransaction {
   description: string;
   category?: string;
   date: string;
+  chest_id?: string | null;   // ← NUEVO (opcional)
 }
 
 export function useTransactions() {

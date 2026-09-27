@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "../supabaseClient";
+import type { Transaction } from "./useTransactions";
 
 export interface Chest {
   id: string;
@@ -30,7 +31,7 @@ export interface NewChest {
   percentage: number;
 }
 
-export function useChests() {
+export function useChests(transactions: Transaction[]) {
   const [chests, setChests] = useState<Chest[]>([]);
   const [colors, setColors] = useState<ChestColor[]>([]);
   const [loading, setLoading] = useState(true);
@@ -109,7 +110,6 @@ export function useChests() {
   }
 
   async function deleteChest(id: string) {
-    // Soft delete: marcamos is_active = false y deleted_at = ahora
     const { error } = await supabase
       .from("chests")
       .update({ is_active: false, deleted_at: new Date().toISOString() })
@@ -124,12 +124,31 @@ export function useChests() {
     return { error: null };
   }
 
-  // Total de porcentajes repartidos (para validar)
+  // Calcular saldos en vivo desde las transacciones
+  const chestsWithBalance = chests.map((chest) => {
+    const chestTransactions = transactions.filter(
+      (t) => t.chest_id === chest.id
+    );
+
+    const income = chestTransactions
+      .filter((t) => t.type === "income")
+      .reduce((acc, t) => acc + t.amount, 0);
+
+    const expenses = chestTransactions
+      .filter((t) => t.type === "expense")
+      .reduce((acc, t) => acc + t.amount, 0);
+
+    return {
+      ...chest,
+      balance: income - expenses,
+    };
+  });
+
   const totalPercentage = chests.reduce((acc, c) => acc + c.percentage, 0);
   const availablePercentage = 100 - totalPercentage;
 
   return {
-    chests,
+    chests: chestsWithBalance,
     colors,
     loading,
     error,

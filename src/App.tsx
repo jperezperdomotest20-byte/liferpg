@@ -58,15 +58,15 @@ function AuthenticatedApp({
   } = useTransactions();
 
   const {
-  chests,
-  colors,
-  loading: chestsLoading,
-  error: chestsError,
-  addChest,
-  updateChest,
-  deleteChest,
-  availablePercentage,
-} = useChests();
+    chests,
+    colors,
+    loading: chestsLoading,
+    error: chestsError,
+    addChest,
+    updateChest,
+    deleteChest,
+    availablePercentage,
+  } = useChests(transactions);
 
   return (
     <div className="min-h-screen p-4 md:p-6 max-w-4xl mx-auto">
