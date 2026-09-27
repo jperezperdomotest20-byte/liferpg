@@ -126,10 +126,10 @@ function TransactionForm({
     }
     // INGRESO repartido: grupo de transacciones
     else if (distributeAutomatically) {
-      const parts = preview.map((p) => ({
-        amount: p.amount,
-        chest_id: p.chest.id,
-      }));
+      const parts: { amount: number; chest_id: string | null }[] = preview.map((p) => ({
+  amount: p.amount,
+  chest_id: p.chest.id,
+}));
 
       // Si sobra algo sin asignar, agregamos una parte con chest_id = null
       if (unassignedAmount > 0.01) {
