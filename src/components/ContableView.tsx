@@ -47,7 +47,6 @@ function ContableView({
     return `${d}/${m}/${y}`;
   }
 
-  // Agrupamos: cada group_id se ve como un solo item
   type ListItem =
     | { kind: "single"; transaction: Transaction }
     | { kind: "group"; groupId: string; transactions: Transaction[] };
@@ -107,6 +106,8 @@ function ContableView({
           {items.map((item) => {
             if (item.kind === "single") {
               const t = item.transaction;
+              const chest = chests.find((c) => c.id === t.chest_id);
+
               return (
                 <li
                   key={t.id}
@@ -114,8 +115,22 @@ function ContableView({
                 >
                   <div className="flex-1">
                     <div className="text-text-primary">{t.description}</div>
-                    <div className="text-text-secondary text-xs">
-                      {formatDate(t.date)}
+                    <div className="text-text-secondary text-xs flex items-center gap-2">
+                      <span>{formatDate(t.date)}</span>
+                      {chest && (
+                        <>
+                          <span>·</span>
+                          <img
+                            src={chest.icon}
+                            alt={chest.name}
+                            className="w-4 h-4 object-contain"
+                            style={{ imageRendering: "pixelated" }}
+                          />
+                          <span style={{ color: chest.color }}>
+                            {chest.name}
+                          </span>
+                        </>
+                      )}
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
@@ -142,7 +157,10 @@ function ContableView({
 
             // Grupo
             const isExpanded = expandedGroups.has(item.groupId);
-            const total = item.transactions.reduce((acc, t) => acc + t.amount, 0);
+            const total = item.transactions.reduce(
+              (acc, t) => acc + t.amount,
+              0
+            );
             const firstTx = item.transactions[0];
 
             return (
