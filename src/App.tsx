@@ -63,6 +63,8 @@ function AuthenticatedApp({
   loading: chestsLoading,
   error: chestsError,
   addChest,
+  updateChest,
+  deleteChest,
   availablePercentage,
 } = useChests();
 
@@ -81,13 +83,15 @@ function AuthenticatedApp({
         {activeTab === "contable" && (
   <>
     <ChestsView
-      chests={chests}
-      colors={colors}
-      loading={chestsLoading}
-      error={chestsError}
-      availablePercentage={availablePercentage}
-      addChest={addChest}
-    />
+  chests={chests}
+  colors={colors}
+  loading={chestsLoading}
+  error={chestsError}
+  availablePercentage={availablePercentage}
+  addChest={addChest}
+  updateChest={updateChest}
+  deleteChest={deleteChest}
+/>
     <ContableView
       transactions={transactions}
       loading={loading}

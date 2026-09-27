@@ -9,6 +9,11 @@ interface ChestsViewProps {
   error: string | null;
   availablePercentage: number;
   addChest: (input: NewChest) => Promise<{ error: string | null }>;
+  updateChest: (
+    id: string,
+    input: NewChest
+  ) => Promise<{ error: string | null }>;
+  deleteChest: (id: string) => Promise<{ error: string | null }>;
 }
 
 function ChestsView({
@@ -18,14 +23,39 @@ function ChestsView({
   error,
   availablePercentage,
   addChest,
+  updateChest,
+  deleteChest,
 }: ChestsViewProps) {
   const [showForm, setShowForm] = useState(false);
+  const [editingChest, setEditingChest] = useState<Chest | null>(null);
 
-  async function handleCreate(input: NewChest) {
-    const { error } = await addChest(input);
-    if (!error) {
-      setShowForm(false);
-    }
+  function openCreate() {
+    setEditingChest(null);
+    setShowForm(true);
+  }
+
+  function openEdit(chest: Chest) {
+    setEditingChest(chest);
+    setShowForm(true);
+  }
+
+  function closeForm() {
+    setShowForm(false);
+    setEditingChest(null);
+  }
+
+  async function handleSubmit(input: NewChest) {
+    const { error } = editingChest
+      ? await updateChest(editingChest.id, input)
+      : await addChest(input);
+    if (!error) closeForm();
+    return { error };
+  }
+
+  async function handleDelete() {
+    if (!editingChest) return { error: "No hay cofre seleccionado" };
+    const { error } = await deleteChest(editingChest.id);
+    if (!error) closeForm();
     return { error };
   }
 
@@ -63,7 +93,7 @@ function ChestsView({
             🏛️ SALA DEL TESORO
           </h2>
           <button
-            onClick={() => setShowForm(true)}
+            onClick={openCreate}
             className="bg-bg-deep border-2 border-border-gold text-text-gold rounded px-3 py-1.5 font-pixel text-xs hover:bg-bg-panel-light transition-all"
           >
             ➕ NUEVO
@@ -77,9 +107,10 @@ function ChestsView({
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
             {chests.map((chest) => (
-              <div
+              <button
                 key={chest.id}
-                className="rounded-lg border-2 p-4 transition-all hover:scale-[1.02]"
+                onClick={() => openEdit(chest)}
+                className="rounded-lg border-2 p-4 transition-all hover:scale-[1.02] text-left cursor-pointer"
                 style={{
                   backgroundColor: "#0a0a12",
                   borderColor: chest.color,
@@ -110,7 +141,7 @@ function ChestsView({
                 <div className="text-text-primary font-pixel text-base">
                   ${chest.balance.toLocaleString()}
                 </div>
-              </div>
+              </button>
             ))}
           </div>
         )}
@@ -120,8 +151,10 @@ function ChestsView({
         <ChestForm
           colors={colors}
           availablePercentage={availablePercentage}
-          onSubmit={handleCreate}
-          onCancel={() => setShowForm(false)}
+          chest={editingChest ?? undefined}
+          onSubmit={handleSubmit}
+          onDelete={editingChest ? handleDelete : undefined}
+          onCancel={closeForm}
         />
       )}
     </>

@@ -87,6 +87,43 @@ export function useChests() {
     return { error: null };
   }
 
+  async function updateChest(id: string, input: NewChest) {
+    const { data, error } = await supabase
+      .from("chests")
+      .update(input)
+      .eq("id", id)
+      .select()
+      .single();
+
+    if (error) {
+      setError(error.message);
+      return { error: error.message };
+    }
+
+    setChests((prev) =>
+      prev
+        .map((c) => (c.id === id ? data : c))
+        .sort((a, b) => b.percentage - a.percentage)
+    );
+    return { error: null };
+  }
+
+  async function deleteChest(id: string) {
+    // Soft delete: marcamos is_active = false y deleted_at = ahora
+    const { error } = await supabase
+      .from("chests")
+      .update({ is_active: false, deleted_at: new Date().toISOString() })
+      .eq("id", id);
+
+    if (error) {
+      setError(error.message);
+      return { error: error.message };
+    }
+
+    setChests((prev) => prev.filter((c) => c.id !== id));
+    return { error: null };
+  }
+
   // Total de porcentajes repartidos (para validar)
   const totalPercentage = chests.reduce((acc, c) => acc + c.percentage, 0);
   const availablePercentage = 100 - totalPercentage;
@@ -97,6 +134,8 @@ export function useChests() {
     loading,
     error,
     addChest,
+    updateChest,
+    deleteChest,
     reload: load,
     totalPercentage,
     availablePercentage,
