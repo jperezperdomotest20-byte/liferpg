@@ -2,10 +2,10 @@ import { useState } from "react";
 import { useAuth } from "./hooks/useAuth";
 import { useTransactions } from "./hooks/useTransactions";
 import { useChests } from "./hooks/useChests";
+import ChestsView from "./components/ChestsView";
 import AuthView from "./components/AuthView";
 import Header from "./components/Header";
 import { Tabs, type TabId } from "./components/Tabs";
-import ChestsView from "./components/ChestsView";
 import ContableView from "./components/ContableView";
 import InventarioView from "./components/InventarioView";
 import MisionesView from "./components/MisionesView";
@@ -58,10 +58,13 @@ function AuthenticatedApp({
   } = useTransactions();
 
   const {
-    chests,
-    loading: chestsLoading,
-    error: chestsError,
-  } = useChests();
+  chests,
+  colors,
+  loading: chestsLoading,
+  error: chestsError,
+  addChest,
+  availablePercentage,
+} = useChests();
 
   return (
     <div className="min-h-screen p-4 md:p-6 max-w-4xl mx-auto">
@@ -76,21 +79,25 @@ function AuthenticatedApp({
 
       <main>
         {activeTab === "contable" && (
-          <>
-            <ChestsView
-              chests={chests}
-              loading={chestsLoading}
-              error={chestsError}
-            />
-            <ContableView
-              transactions={transactions}
-              loading={loading}
-              error={error}
-              addTransaction={addTransaction}
-              deleteTransaction={deleteTransaction}
-            />
-          </>
-        )}
+  <>
+    <ChestsView
+      chests={chests}
+      colors={colors}
+      loading={chestsLoading}
+      error={chestsError}
+      availablePercentage={availablePercentage}
+      addChest={addChest}
+    />
+    <ContableView
+      transactions={transactions}
+      loading={loading}
+      error={error}
+      addTransaction={addTransaction}
+      deleteTransaction={deleteTransaction}
+    />
+  </>
+)}
+
         {activeTab === "inventario" && <InventarioView />}
         {activeTab === "misiones" && <MisionesView />}
       </main>

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { supabase } from "../supabaseClient";
 
 export interface Chest {
@@ -15,32 +15,90 @@ export interface Chest {
   updated_at: string;
 }
 
+export interface ChestColor {
+  id: string;
+  name: string;
+  icon_path: string;
+  border_color: string;
+  sort_order: number;
+}
+
+export interface NewChest {
+  name: string;
+  icon: string;
+  color: string;
+  percentage: number;
+}
+
 export function useChests() {
   const [chests, setChests] = useState<Chest[]>([]);
+  const [colors, setColors] = useState<ChestColor[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    async function load() {
-      setLoading(true);
-      setError(null);
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError(null);
 
-      const { data, error } = await supabase
+    const [chestsRes, colorsRes] = await Promise.all([
+      supabase
         .from("chests")
         .select("*")
         .eq("is_active", true)
-        .order("percentage", { ascending: false });
+        .order("percentage", { ascending: false }),
+      supabase
+        .from("chest_colors")
+        .select("*")
+        .order("sort_order", { ascending: true }),
+    ]);
 
-      if (error) {
-        setError(error.message);
-      } else {
-        setChests(data ?? []);
-      }
-      setLoading(false);
+    if (chestsRes.error) {
+      setError(chestsRes.error.message);
+    } else {
+      setChests(chestsRes.data ?? []);
     }
 
-    load();
+    if (!colorsRes.error) {
+      setColors(colorsRes.data ?? []);
+    }
+
+    setLoading(false);
   }, []);
 
-  return { chests, loading, error };
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  async function addChest(input: NewChest) {
+    const { data, error } = await supabase
+      .from("chests")
+      .insert(input)
+      .select()
+      .single();
+
+    if (error) {
+      setError(error.message);
+      return { error: error.message };
+    }
+
+    setChests((prev) =>
+      [...prev, data].sort((a, b) => b.percentage - a.percentage)
+    );
+    return { error: null };
+  }
+
+  // Total de porcentajes repartidos (para validar)
+  const totalPercentage = chests.reduce((acc, c) => acc + c.percentage, 0);
+  const availablePercentage = 100 - totalPercentage;
+
+  return {
+    chests,
+    colors,
+    loading,
+    error,
+    addChest,
+    reload: load,
+    totalPercentage,
+    availablePercentage,
+  };
 }
