@@ -1,8 +1,10 @@
 import type { Transaction, NewTransaction } from "../hooks/useTransactions";
+import type { Chest } from "../hooks/useChests";
 import TransactionForm from "./TransactionForm";
 
 interface ContableViewProps {
   transactions: Transaction[];
+  chests: Chest[];
   loading: boolean;
   error: string | null;
   addTransaction: (input: NewTransaction) => Promise<{ error: string | null }>;
@@ -11,6 +13,7 @@ interface ContableViewProps {
 
 function ContableView({
   transactions,
+  chests,
   loading,
   error,
   addTransaction,
@@ -23,7 +26,7 @@ function ContableView({
 
   return (
     <div>
-      <TransactionForm onSubmit={addTransaction} />
+      <TransactionForm chests={chests} onSubmit={addTransaction} />
 
       <div className="bg-bg-panel border-2 border-border-dim rounded-lg p-4">
         <h2 className="font-pixel text-text-gold text-sm mb-4">

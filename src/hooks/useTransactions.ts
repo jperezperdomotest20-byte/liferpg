@@ -9,7 +9,8 @@ export interface Transaction {
   description: string;
   category: string | null;
   date: string;
-  chest_id: string | null;    // ← NUEVO
+  chest_id: string | null;
+  group_id: string | null;
   created_at: string;
 }
 
@@ -19,7 +20,7 @@ export interface NewTransaction {
   description: string;
   category?: string;
   date: string;
-  chest_id?: string | null;   // ← NUEVO (opcional)
+  chest_id?: string | null;
 }
 
 export function useTransactions() {
@@ -60,27 +61,49 @@ export function useTransactions() {
       return { error: error.message };
     }
 
-    // Insertamos el nuevo al principio (ya viene ordenado así desde el server)
     setTransactions((prev) => [data, ...prev]);
     return { error: null };
   }
 
   async function deleteTransaction(id: string) {
-    const { error } = await supabase
+    // Si la transacción pertenece a un grupo, borramos TODAS las del grupo
+    const { data: tx } = await supabase
       .from("transactions")
-      .delete()
-      .eq("id", id);
+      .select("group_id")
+      .eq("id", id)
+      .single();
 
-    if (error) {
-      setError(error.message);
-      return { error: error.message };
+    if (tx?.group_id) {
+      const { error } = await supabase
+        .from("transactions")
+        .delete()
+        .eq("group_id", tx.group_id);
+
+      if (error) {
+        setError(error.message);
+        return { error: error.message };
+      }
+
+      setTransactions((prev) =>
+        prev.filter((t) => t.group_id !== tx.group_id)
+      );
+    } else {
+      const { error } = await supabase
+        .from("transactions")
+        .delete()
+        .eq("id", id);
+
+      if (error) {
+        setError(error.message);
+        return { error: error.message };
+      }
+
+      setTransactions((prev) => prev.filter((t) => t.id !== id));
     }
 
-    setTransactions((prev) => prev.filter((t) => t.id !== id));
     return { error: null };
   }
 
-  // Cálculos derivados
   const balance = transactions.reduce((acc, t) => {
     return t.type === "income" ? acc + t.amount : acc - t.amount;
   }, 0);
