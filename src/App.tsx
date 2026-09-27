@@ -47,15 +47,16 @@ function AuthenticatedApp({
   setActiveTab: (t: TabId) => void;
 }) {
   const {
-    transactions,
-    loading,
-    error,
-    addTransaction,
-    deleteTransaction,
-    balance,
-    totalIncome,
-    totalExpenses,
-  } = useTransactions();
+  transactions,
+  loading,
+  error,
+  addTransaction,
+  addTransactionGroup,   // ← NUEVO
+  deleteTransaction,
+  balance,
+  totalIncome,
+  totalExpenses,
+} = useTransactions();
 
   const {
     chests,
@@ -93,13 +94,14 @@ function AuthenticatedApp({
       deleteChest={deleteChest}
     />
     <ContableView
-      transactions={transactions}
-      chests={chests}
-      loading={loading}
-      error={error}
-      addTransaction={addTransaction}
-      deleteTransaction={deleteTransaction}
-    />
+  transactions={transactions}
+  chests={chests}
+  loading={loading}
+  error={error}
+  addTransaction={addTransaction}
+  addTransactionGroup={addTransactionGroup}   /* ← NUEVO */
+  deleteTransaction={deleteTransaction}
+/>
   </>
 )}
 

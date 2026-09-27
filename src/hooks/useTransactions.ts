@@ -23,6 +23,13 @@ export interface NewTransaction {
   chest_id?: string | null;
 }
 
+export interface GroupedTransactionInput {
+  description: string;
+  date: string;
+  type: "income";
+  parts: { amount: number; chest_id: string | null }[];
+}
+
 export function useTransactions() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
@@ -65,8 +72,35 @@ export function useTransactions() {
     return { error: null };
   }
 
+  async function addTransactionGroup(input: GroupedTransactionInput) {
+    // Generamos un group_id compartido (uuid v4)
+    const groupId = crypto.randomUUID();
+
+    // Armamos todas las transacciones
+    const rows = input.parts.map((part) => ({
+      type: input.type,
+      amount: part.amount,
+      description: input.description,
+      date: input.date,
+      chest_id: part.chest_id,
+      group_id: groupId,
+    }));
+
+    const { data, error } = await supabase
+      .from("transactions")
+      .insert(rows)
+      .select();
+
+    if (error) {
+      setError(error.message);
+      return { error: error.message };
+    }
+
+    setTransactions((prev) => [...(data ?? []), ...prev]);
+    return { error: null };
+  }
+
   async function deleteTransaction(id: string) {
-    // Si la transacción pertenece a un grupo, borramos TODAS las del grupo
     const { data: tx } = await supabase
       .from("transactions")
       .select("group_id")
@@ -121,6 +155,7 @@ export function useTransactions() {
     loading,
     error,
     addTransaction,
+    addTransactionGroup,
     deleteTransaction,
     reload: load,
     balance,
