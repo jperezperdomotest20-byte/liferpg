@@ -9,6 +9,7 @@ import { Tabs, type TabId } from "./components/Tabs";
 import ContableView from "./components/ContableView";
 import InventarioView from "./components/InventarioView";
 import MisionesView from "./components/MisionesView";
+import { useDebts } from "./hooks/useDebts";
 
 function App() {
   const { user, loading: authLoading } = useAuth();
@@ -69,6 +70,8 @@ function AuthenticatedApp({
     availablePercentage,
   } = useChests(transactions);
 
+  const debts = useDebts();
+
   return (
     <div className="min-h-screen p-4 md:p-6 max-w-4xl mx-auto">
       <Header
@@ -99,8 +102,9 @@ function AuthenticatedApp({
   loading={loading}
   error={error}
   addTransaction={addTransaction}
-  addTransactionGroup={addTransactionGroup}   /* ← NUEVO */
+  addTransactionGroup={addTransactionGroup}
   deleteTransaction={deleteTransaction}
+  debts={debts}
 />
   </>
 )}

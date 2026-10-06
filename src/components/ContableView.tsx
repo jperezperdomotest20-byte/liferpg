@@ -6,6 +6,8 @@ import type {
 } from "../hooks/useTransactions";
 import type { Chest } from "../hooks/useChests";
 import TransactionForm from "./TransactionForm";
+import { useDebts } from "../hooks/useDebts";
+import DebtsPanel from "./DebtsPanel";
 
 interface ContableViewProps {
   transactions: Transaction[];
@@ -17,6 +19,7 @@ interface ContableViewProps {
     input: GroupedTransactionInput
   ) => Promise<{ error: string | null }>;
   deleteTransaction: (id: string) => Promise<{ error: string | null }>;
+  debts: ReturnType<typeof useDebts>;
 }
 
 function ContableView({
@@ -27,6 +30,7 @@ function ContableView({
   addTransaction,
   addTransactionGroup,
   deleteTransaction,
+  debts,
 }: ContableViewProps) {
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
 
@@ -72,15 +76,25 @@ function ContableView({
   return (
     <div>
       <TransactionForm
-        chests={chests}
-        onSubmit={addTransaction}
-        onSubmitGroup={addTransactionGroup}
-      />
+    chests={chests}
+    onSubmit={addTransaction}
+    onSubmitGroup={addTransactionGroup}
+    />
 
+    <DebtsPanel
+  debts={debts.debts}
+  activeDebts={debts.activeDebts}
+  settledDebts={debts.settledDebts}
+  loading={debts.loading}
+  error={debts.error}
+  totalTheyOweMe={debts.totalTheyOweMe}
+  totalIOweThem={debts.totalIOweThem}
+  chests={chests}
+/>
       <div className="bg-bg-panel border-2 border-border-dim rounded-lg p-4">
-        <h2 className="font-pixel text-text-gold text-sm mb-4">
-          📜 LIBRO CONTABLE
-        </h2>
+  <h2 className="font-pixel text-text-gold text-sm mb-4">
+    📜 LIBRO CONTABLE
+  </h2>
 
         {loading && (
           <div className="text-text-secondary text-sm text-center py-4">
