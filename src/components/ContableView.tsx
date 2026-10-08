@@ -9,6 +9,7 @@ import type { Debt, NewDebt } from "../hooks/useDebts";
 import TransactionForm from "./TransactionForm";
 import DebtsPanel from "./DebtsPanel";
 import DebtForm from "./DebtForm";
+import PaymentForm from "./PaymentForm";
 
 interface UseDebtsReturn {
   debts: Debt[];
@@ -21,6 +22,12 @@ interface UseDebtsReturn {
   addDebt: (input: NewDebt) => Promise<{ error: string | null; debtId?: string }>;
   totalTheyOweMe: number;
   totalIOweThem: number;
+  addPayment: (
+    debtId: string,
+    amount: number,
+    date: string,
+    notes?: string
+  ) => Promise<{ error: string | null; isSettled?: boolean }>;
 }
 
 interface ContableViewProps {
@@ -50,6 +57,7 @@ function ContableView({
 }: ContableViewProps) {
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
   const [showDebtForm, setShowDebtForm] = useState(false);
+  const [payingDebt, setPayingDebt] = useState<Debt | null>(null);
 
   async function handleCreateDebt(input: NewDebt) {
     const { error } = await debts.addDebt(input);
@@ -60,6 +68,17 @@ function ContableView({
     }
     return { error };
   }
+
+  async function handleAddPayment(amount: number, date: string, notes?: string) {
+  if (!payingDebt) return { error: "No hay deuda seleccionada" };
+  const { error } = await debts.addPayment(payingDebt.id, amount, date, notes);
+  if (!error) {
+    setPayingDebt(null);
+    // Recargar transacciones porque se creó una automática
+    await reloadTransactions();
+  }
+  return { error };
+}
 
   function toggleGroup(groupId: string) {
     setExpandedGroups((prev) => {
@@ -118,6 +137,7 @@ function ContableView({
         totalIOweThem={debts.totalIOweThem}
         chests={chests}
         onAddClick={() => setShowDebtForm(true)}
+        onPayClick={(debt) => setPayingDebt(debt)}
       />
 
       {showDebtForm && (
@@ -127,6 +147,14 @@ function ContableView({
           onCancel={() => setShowDebtForm(false)}
         />
       )}
+
+      {payingDebt && (
+      <PaymentForm
+      debt={payingDebt}
+      onSubmit={handleAddPayment}
+      onCancel={() => setPayingDebt(null)}
+      />
+    )}
 
       <div className="bg-bg-panel border-2 border-border-dim rounded-lg p-4">
         <h2 className="font-pixel text-text-gold text-sm mb-4">

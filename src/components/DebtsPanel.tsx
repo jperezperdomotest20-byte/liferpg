@@ -16,6 +16,7 @@ interface DebtsPanelProps {
   totalIOweThem: number;
   chests: Chest[];
   onAddClick: () => void;
+  onPayClick: (debt: Debt) => void;  // ← NUEVO
 }
 
 function DebtsPanel({
@@ -28,6 +29,7 @@ function DebtsPanel({
   totalIOweThem,
   chests,
   onAddClick,
+  onPayClick,
 }: DebtsPanelProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [showSettled, setShowSettled] = useState(false);
@@ -221,6 +223,12 @@ function DebtsPanel({
                             </div>
                           </div>
                         )}
+                        <button
+                          onClick={() => onPayClick(debt)}
+                          className="mt-2 w-full bg-bg-deep border border-accent-gold/50 text-accent-gold rounded py-1 text-xs font-pixel hover:bg-accent-gold/10 transition-all"
+                          >
+                          💰 REGISTRAR PAGO
+                          </button>
                       </div>
                     );
                   })}
