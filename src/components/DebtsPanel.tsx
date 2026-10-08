@@ -15,6 +15,7 @@ interface DebtsPanelProps {
   totalTheyOweMe: number;
   totalIOweThem: number;
   chests: Chest[];
+  onAddClick: () => void;
 }
 
 function DebtsPanel({
@@ -26,17 +27,16 @@ function DebtsPanel({
   totalTheyOweMe,
   totalIOweThem,
   chests,
+  onAddClick,
 }: DebtsPanelProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [showSettled, setShowSettled] = useState(false);
 
-  // Función helper: dada una deuda, devuelve el cofre asociado (si existe)
   function getChestForDebt(debt: Debt): Chest | undefined {
     if (!debt.chest_id) return undefined;
     return chests.find((c) => c.id === debt.chest_id);
   }
 
-  // Agrupar deudas activas por persona
   const groupedActive = activeDebts.reduce<Record<string, Debt[]>>(
     (acc, debt) => {
       const key = debt.person_name.toLowerCase();
@@ -55,11 +55,11 @@ function DebtsPanel({
   return (
     <div className="bg-bg-panel border-2 border-border-dim rounded-lg mb-4 overflow-hidden">
       {/* Header colapsable */}
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex justify-between items-center p-4 hover:bg-bg-panel-light transition-colors"
-      >
-        <div className="flex items-center gap-3">
+      <div className="w-full flex justify-between items-center p-4">
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className="flex items-center gap-3 flex-1 text-left hover:opacity-80 transition-opacity"
+        >
           <span className="text-text-secondary text-xs">
             {isOpen ? "▼" : "▶"}
           </span>
@@ -69,10 +69,11 @@ function DebtsPanel({
               {activeDebts.length}
             </span>
           )}
-        </div>
+        </button>
+
         <div className="flex items-center gap-4 text-xs">
           {totalTheyOweMe > 0 && (
-            <div>
+            <div className="hidden md:block">
               <span className="text-text-secondary">Te deben: </span>
               <span className="text-accent-emerald font-pixel">
                 ${totalTheyOweMe.toFixed(0)}
@@ -80,15 +81,21 @@ function DebtsPanel({
             </div>
           )}
           {totalIOweThem > 0 && (
-            <div>
+            <div className="hidden md:block">
               <span className="text-text-secondary">Debés: </span>
               <span className="text-accent-ruby font-pixel">
                 ${totalIOweThem.toFixed(0)}
               </span>
             </div>
           )}
+          <button
+            onClick={onAddClick}
+            className="bg-bg-deep border-2 border-border-gold text-text-gold rounded px-3 py-1.5 font-pixel text-xs hover:bg-bg-panel-light transition-all"
+          >
+            ➕ NUEVA
+          </button>
         </div>
-      </button>
+      </div>
 
       {/* Contenido colapsable */}
       {isOpen && (
@@ -108,14 +115,9 @@ function DebtsPanel({
           {!loading && activeDebts.length === 0 && debts.length === 0 && (
             <div className="text-text-secondary text-sm text-center py-6">
               📭 No hay deudas registradas todavía.
-              <br />
-              <span className="text-xs">
-                (Próximamente: botón para crear deudas)
-              </span>
             </div>
           )}
 
-          {/* Deudas activas agrupadas por persona */}
           {Object.entries(groupedActive).map(([personKey, personDebts]) => {
             const personName = personDebts[0].person_name;
             const totalTheyOwe = personDebts
@@ -130,7 +132,6 @@ function DebtsPanel({
                 key={personKey}
                 className="mb-3 bg-bg-deep border border-border-dim rounded p-3"
               >
-                {/* Nombre de la persona + totales */}
                 <div className="flex justify-between items-center mb-2">
                   <div className="font-pixel text-text-primary text-xs">
                     👤 {personName.toUpperCase()}
@@ -149,7 +150,6 @@ function DebtsPanel({
                   </div>
                 </div>
 
-                {/* Deudas de esa persona */}
                 <div className="space-y-2">
                   {personDebts.map((debt) => {
                     const pending = getPendingAmount(debt);
@@ -208,7 +208,6 @@ function DebtsPanel({
                           </div>
                         </div>
 
-                        {/* Barra de progreso */}
                         {debt.amount_paid > 0 && (
                           <div className="mt-2">
                             <div className="w-full h-1.5 bg-bg-deep rounded overflow-hidden">
@@ -230,7 +229,6 @@ function DebtsPanel({
             );
           })}
 
-          {/* Sección de deudas saldadas (colapsable también) */}
           {settledDebts.length > 0 && (
             <div className="mt-4 pt-3 border-t border-border-dim">
               <button

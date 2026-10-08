@@ -11,6 +11,7 @@ export interface Transaction {
   date: string;
   chest_id: string | null;
   group_id: string | null;
+  related_debt_id: string | null;   // ← NUEVO
   created_at: string;
 }
 

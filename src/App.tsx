@@ -52,8 +52,9 @@ function AuthenticatedApp({
   loading,
   error,
   addTransaction,
-  addTransactionGroup,   // ← NUEVO
+  addTransactionGroup,
   deleteTransaction,
+  reload,  // ← Asegurate de tener esto
   balance,
   totalIncome,
   totalExpenses,
@@ -105,6 +106,7 @@ function AuthenticatedApp({
   addTransactionGroup={addTransactionGroup}
   deleteTransaction={deleteTransaction}
   debts={debts}
+  reloadTransactions={reload}
 />
   </>
 )}

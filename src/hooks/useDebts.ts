@@ -25,17 +25,7 @@ export interface NewDebt {
   description?: string;
   notes?: string;
   date_started: string;
-  chest_id?: string | null;
-}
-
-export interface DebtPayment {
-  id: string;
-  user_id: string;
-  debt_id: string;
-  amount: number;
-  date: string;
-  notes: string | null;
-  created_at: string;
+  chest_id: string | null;
 }
 
 export function useDebts() {
@@ -50,7 +40,7 @@ export function useDebts() {
     const { data, error } = await supabase
       .from("debts")
       .select("*")
-      .order("status", { ascending: true }) // active primero, después settled, cancelled
+      .order("status", { ascending: true })
       .order("date_started", { ascending: false });
 
     if (error) {
@@ -65,12 +55,62 @@ export function useDebts() {
     load();
   }, [load]);
 
-  // Cálculos derivados
+  // Crear deuda + transacción vinculada
+  // Devuelve el debt_id para que App pueda refrescar transacciones
+  async function addDebt(input: NewDebt) {
+    // 1. Crear la deuda
+    const { data: debt, error: debtError } = await supabase
+      .from("debts")
+      .insert({
+        direction: input.direction,
+        person_name: input.person_name,
+        amount_total: input.amount_total,
+        description: input.description,
+        notes: input.notes,
+        date_started: input.date_started,
+        chest_id: input.chest_id,
+      })
+      .select()
+      .single();
+
+    if (debtError || !debt) {
+      setError(debtError?.message ?? "Error creando deuda");
+      return { error: debtError?.message ?? "Error creando deuda" };
+    }
+
+    // 2. Crear la transacción vinculada
+    const transactionType = input.direction === "they_owe_me" ? "expense" : "income";
+    const description =
+      input.direction === "they_owe_me"
+        ? `Préstamo a ${input.person_name}`
+        : `Préstamo de ${input.person_name}`;
+
+    const { error: txError } = await supabase
+      .from("transactions")
+      .insert({
+        type: transactionType,
+        amount: input.amount_total,
+        description,
+        date: input.date_started,
+        chest_id: input.chest_id,
+        related_debt_id: debt.id,
+      });
+
+    if (txError) {
+      // Si falla la transacción, borramos la deuda para no dejar huérfana
+      await supabase.from("debts").delete().eq("id", debt.id);
+      setError(txError.message);
+      return { error: txError.message };
+    }
+
+    setDebts((prev) => [debt, ...prev]);
+    return { error: null, debtId: debt.id };
+  }
+
   const activeDebts = debts.filter((d) => d.status === "active");
   const settledDebts = debts.filter((d) => d.status === "settled");
   const cancelledDebts = debts.filter((d) => d.status === "cancelled");
 
-  // Totales (solo activas)
   const totalTheyOweMe = activeDebts
     .filter((d) => d.direction === "they_owe_me")
     .reduce((acc, d) => acc + (d.amount_total - d.amount_paid), 0);
@@ -87,12 +127,12 @@ export function useDebts() {
     loading,
     error,
     reload: load,
+    addDebt,
     totalTheyOweMe,
     totalIOweThem,
   };
 }
 
-// Helpers exportados para usar en componentes
 export function getPendingAmount(debt: Debt): number {
   return debt.amount_total - debt.amount_paid;
 }

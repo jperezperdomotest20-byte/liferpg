@@ -5,9 +5,23 @@ import type {
   GroupedTransactionInput,
 } from "../hooks/useTransactions";
 import type { Chest } from "../hooks/useChests";
+import type { Debt, NewDebt } from "../hooks/useDebts";
 import TransactionForm from "./TransactionForm";
-import { useDebts } from "../hooks/useDebts";
 import DebtsPanel from "./DebtsPanel";
+import DebtForm from "./DebtForm";
+
+interface UseDebtsReturn {
+  debts: Debt[];
+  activeDebts: Debt[];
+  settledDebts: Debt[];
+  cancelledDebts: Debt[];
+  loading: boolean;
+  error: string | null;
+  reload: () => Promise<void>;
+  addDebt: (input: NewDebt) => Promise<{ error: string | null; debtId?: string }>;
+  totalTheyOweMe: number;
+  totalIOweThem: number;
+}
 
 interface ContableViewProps {
   transactions: Transaction[];
@@ -19,7 +33,8 @@ interface ContableViewProps {
     input: GroupedTransactionInput
   ) => Promise<{ error: string | null }>;
   deleteTransaction: (id: string) => Promise<{ error: string | null }>;
-  debts: ReturnType<typeof useDebts>;
+  debts: UseDebtsReturn;
+  reloadTransactions: () => Promise<void>;
 }
 
 function ContableView({
@@ -31,8 +46,20 @@ function ContableView({
   addTransactionGroup,
   deleteTransaction,
   debts,
+  reloadTransactions,
 }: ContableViewProps) {
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
+  const [showDebtForm, setShowDebtForm] = useState(false);
+
+  async function handleCreateDebt(input: NewDebt) {
+    const { error } = await debts.addDebt(input);
+    if (!error) {
+      setShowDebtForm(false);
+      // Refrescar transacciones porque se creó una automática
+      await reloadTransactions();
+    }
+    return { error };
+  }
 
   function toggleGroup(groupId: string) {
     setExpandedGroups((prev) => {
@@ -76,25 +103,35 @@ function ContableView({
   return (
     <div>
       <TransactionForm
-    chests={chests}
-    onSubmit={addTransaction}
-    onSubmitGroup={addTransactionGroup}
-    />
+        chests={chests}
+        onSubmit={addTransaction}
+        onSubmitGroup={addTransactionGroup}
+      />
 
-    <DebtsPanel
-  debts={debts.debts}
-  activeDebts={debts.activeDebts}
-  settledDebts={debts.settledDebts}
-  loading={debts.loading}
-  error={debts.error}
-  totalTheyOweMe={debts.totalTheyOweMe}
-  totalIOweThem={debts.totalIOweThem}
-  chests={chests}
-/>
+      <DebtsPanel
+        debts={debts.debts}
+        activeDebts={debts.activeDebts}
+        settledDebts={debts.settledDebts}
+        loading={debts.loading}
+        error={debts.error}
+        totalTheyOweMe={debts.totalTheyOweMe}
+        totalIOweThem={debts.totalIOweThem}
+        chests={chests}
+        onAddClick={() => setShowDebtForm(true)}
+      />
+
+      {showDebtForm && (
+        <DebtForm
+          chests={chests}
+          onSubmit={handleCreateDebt}
+          onCancel={() => setShowDebtForm(false)}
+        />
+      )}
+
       <div className="bg-bg-panel border-2 border-border-dim rounded-lg p-4">
-  <h2 className="font-pixel text-text-gold text-sm mb-4">
-    📜 LIBRO CONTABLE
-  </h2>
+        <h2 className="font-pixel text-text-gold text-sm mb-4">
+          📜 LIBRO CONTABLE
+        </h2>
 
         {loading && (
           <div className="text-text-secondary text-sm text-center py-4">
@@ -128,7 +165,12 @@ function ContableView({
                   className="flex justify-between items-center bg-bg-panel-light rounded p-3 border border-border-dim group"
                 >
                   <div className="flex-1">
-                    <div className="text-text-primary">{t.description}</div>
+                    <div className="text-text-primary flex items-center gap-2">
+                      {t.related_debt_id && (
+                        <span title="Vinculada a deuda">🤝</span>
+                      )}
+                      <span>{t.description}</span>
+                    </div>
                     <div className="text-text-secondary text-xs flex items-center gap-2">
                       <span>{formatDate(t.date)}</span>
                       {chest && (
